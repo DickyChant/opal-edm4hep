@@ -1,0 +1,6 @@
+build/
+out/
+*.root
+*.histo
+__pycache__/
+*.log
