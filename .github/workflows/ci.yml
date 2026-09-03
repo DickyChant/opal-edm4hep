@@ -1,20 +1,47 @@
 name: CI
+
 on:
-  push: {branches: [main]}
+  push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  build-and-test:
+    name: build and unit-test
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/key4hep/key4hep-images/alma9:latest
-      options: --user 0
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Build and unit-test
-        shell: bash
+
+      # GitHub-hosted runners have no /cvmfs. Both of this repo's environments
+      # live there: sw.hsf.org for key4hep (stage 2) and sft.cern.ch for the
+      # LCG view that carries h2root (stage 1).
+      - name: Mount cvmfs
+        uses: cvmfs-contrib/github-action-cvmfs@v5
+        with:
+          cvmfs_repositories: 'sw.hsf.org,sft.cern.ch'
+
+      # Trigger the autofs mounts on the host before handing /cvmfs to docker:
+      # binding an un-triggered autofs root gives empty directories.
+      - name: Warm cvmfs mounts
+        run: ls /cvmfs/sw.hsf.org /cvmfs/sft.cern.ch
+
+      - name: Build and test (AlmaLinux 9)
         run: |
-          source /cvmfs/sw.hsf.org/key4hep/setup.sh
-          unset CXXFLAGS CFLAGS LDFLAGS
-          cmake -S opal_edm4hep -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build -j2
-          ctest --test-dir build --output-on-failure
+          docker run --rm \
+            -v /cvmfs:/cvmfs:shared \
+            -v ${{ github.workspace }}:/repo \
+            almalinux:9 \
+            bash /repo/.github/scripts/ci-build.sh
+
+      - name: Record the stack this run used
+        if: always()
+        run: |
+          echo "key4hep stable -> \`$(cat .key4hep-resolved 2>/dev/null || echo unknown)\`" \
+            >> "$GITHUB_STEP_SUMMARY"

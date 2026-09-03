@@ -4,3 +4,4 @@ out/
 *.histo
 __pycache__/
 *.log
+.key4hep-resolved
