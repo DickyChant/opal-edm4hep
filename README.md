@@ -111,6 +111,16 @@ Against 42 GiB free on `/mnt/vdb`, **both do not fit**; either alone does.
 Use `--drop-plain`, stage the two passes to different filesystems, or free
 ~6 GiB first.
 
+## Does it work?
+
+[`docs/validation-thrust.md`](docs/validation-thrust.md) plots thrust at the Z
+pole from the converted trees -- 425 491 data and 887 486 MC events -- against
+detector- and hadron-level Monte Carlo. The shape is textbook, which is the
+cheapest end-to-end evidence that the units, indices and normalisation survived
+the mapping.
+
+![Thrust at the Z pole](docs/thrust-zpole.png)
+
 ## Caveats
 
 - The hadron-level truth block sums to more energy than `sqrt(s)`. It is
