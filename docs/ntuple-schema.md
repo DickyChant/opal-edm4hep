@@ -58,25 +58,55 @@ with `Mtscfc` scales the survivors; `Imttrk`/`Mtscft` do the same for tracks
 are not in `Imtkil`**, with scale factors applied. The validator asserts this
 count identity on every event.
 
-## Open question: hadron-level energy exceeds sqrt(s)
+## Dataset composition
 
-In the MC files the hadron-level block sums to more energy than the collision
-provides:
+Measured from `Ebeam` across all 359 files (8 252 339 events):
 
-    hadron-level sum(E) median 264 GeV   vs   sqrt(s) = 207 GeV   (ratio 1.28)
+| sqrt(s) | files | events | MC | data | era |
+| --- | --- | --- | --- | --- | --- |
+| 91 GeV | 42 | 1 333 349 | 34 | 8 | **LEP1** (Z peak) |
+| 130-136 GeV | 17 | 264 572 | 13 | 4 | LEP2 |
+| 161-172 GeV | 26 | 520 076 | 24 | 2 | LEP2 |
+| 183 GeV | 25 | 548 796 | 24 | 1 | LEP2 |
+| 189 GeV | 58 | 1 330 420 | 57 | 1 | LEP2 |
+| 192-202 GeV | 121 | 2 668 342 | 119 | 2 | LEP2 |
+| 205-207 GeV | 70 | 1 586 784 | 70 | 0 | LEP2 |
 
-Individual entries are internally consistent -- every species' reconstructed
-mass matches its PDG value, so these are real 4-vectors, not misaligned
-buffers -- yet single particles occasionally carry hundreds of GeV, and the
-momentum sum does not balance. By contrast the **primary-fermion block is
-correct**: `sum(Primf.E)` has median 206.2 GeV, matching `2*Ebeam = 207.0` GeV.
+So the set spans **both eras**: 16.2% of events are LEP1, 83.8% LEP2.
 
-We could not resolve this from the binaries alone; it needs someone with OPAL
-knowledge or the QQNT200 documentation. The converter therefore carries the
-block through **faithfully and without correction**, and `scripts/validate.py`
-reports the ratio on every file so the effect stays visible rather than being
-silently laundered into EDM4hep.
+Note that `da91_96` ... `da91_2k_2` and `da1999`/`da2000` are named by *running
+year*, not by energy: `da1999_200` averages 191.7 GeV over that year's scan.
+Bin by the per-event `Ebeam` (carried in `EventFloats`), never by filename.
 
-Consequences for users: treat `MCParticles` with `generatorStatus == 1`
-(hadron level) as suspect until this is understood. The `generatorStatus == 3`
-primary fermions are sound.
+## The hadron-level energy anomaly is confined to LEP2 four-fermion samples
+
+The MC hadron-level block sums to more energy than the collision provides --
+but only in part of the dataset. Comparing the two eras directly:
+
+| sample | Ievtyp | hadron sum(E) / sqrt(s) | `Primf` sum(E) / sqrt(s) |
+| --- | --- | --- | --- |
+| LEP1 Z peak (`mc12040_*`) | 0 | **1.000** | not filled |
+| LEP2 (`mc10781_*`) | 4 | 1.275 | 0.999 |
+| LEP2 (`mc10781_*`) | 7 | 1.159 | 0.999 |
+
+**At the Z peak the block is exact.** The 1.33 M-event LEP1 truth is sound and
+needs no caveat. The excess appears only in the LEP2 four-fermion samples
+(`Ievtyp` 4 and 7), where it affects ~95% of events.
+
+Within those events the excess is driven by individual *leptonic* entries
+carrying more than the beam energy -- one event has a `pdg=-11` entry at
+175.9 GeV against `Ebeam` = 103.5 GeV. Dropping every entry above `Ebeam`
+overshoots in the other direction (ratio 0.45), so the surplus is not simply a
+set of spurious extra particles to be filtered: the individual 4-vectors are
+self-consistent (every species' reconstructed mass matches PDG to 5 decimals),
+which rules out a misaligned buffer.
+
+We could not resolve the cause from the binaries alone; it needs someone with
+OPAL knowledge or the QQNT200 documentation. The converter therefore carries
+the block through **faithfully and without correction**, and
+`scripts/validate.py` reports the ratio on every file so the effect stays
+visible rather than being silently laundered into EDM4hep.
+
+Consequences for users: `MCParticles` with `generatorStatus == 1` (hadron
+level) are trustworthy at LEP1 and suspect in the LEP2 four-fermion samples.
+The `generatorStatus == 3` primary fermions are sound throughout (ratio 0.999).

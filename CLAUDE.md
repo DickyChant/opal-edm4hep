@@ -94,10 +94,16 @@ The load-bearing ones: `Ichg` is a 0/1 flag so `q = 2*Ichg - 1`; lengths are in
 **cm** and EDM4hep wants **mm**; array indices are **1-based**; `Iluch`/`Iluc`
 are PDG codes.
 
-**Known unresolved issue:** the MC hadron-level block sums to ~1.28x `sqrt(s)`.
-It is carried through unmodified and reported by the validator. Do not "fix" it
-by rescaling or filtering — the cause is not understood, and the primary-fermion
-block (which is correct) shows the file is not simply corrupt.
+**Known issue, now scoped:** the MC hadron-level block sums to ~1.28x `sqrt(s)`
+— but **only in the LEP2 four-fermion samples** (`Ievtyp` 4 and 7). At the Z
+peak the ratio is 1.000, so the 1.33 M-event LEP1 truth is sound. Carried
+through unmodified and reported by the validator. Do not "fix" it by rescaling
+or filtering: the 4-vectors are individually self-consistent, and filtering
+entries above `Ebeam` undershoots to 0.45.
+
+The dataset spans **both eras** — 42 files at 91 GeV, the rest 130-207 GeV.
+`da91_*`/`da1999`/`da2000` are named by running *year*, not energy, so bin by
+the per-event `Ebeam`, never by filename.
 
 ## Scope
 
