@@ -111,6 +111,16 @@ Against 42 GiB free on `/mnt/vdb`, **both do not fit**; either alone does.
 Use `--drop-plain`, stage the two passes to different filesystems, or free
 ~6 GiB first.
 
+## What else is on EOS
+
+The QCD ntuples are one directory out of 83.2 TB of OPAL data.
+[`docs/data-inventory.md`](docs/data-inventory.md) maps the rest and what
+converting it would cost. The short version: `ntuple/gg` (88.8 GB, two-photon
+four-fermion samples) already passes stage 1 unchanged and needs only a new
+stage-2 mapping, whereas the DST tiers (`ddst`/`csdst`, 5.3 TB real data;
+`simd`, 62 TB simulation) need OPAL's own reconstruction software and are a
+much larger undertaking.
+
 ## Does it work?
 
 [`docs/validation-thrust.md`](docs/validation-thrust.md) plots thrust at the Z
